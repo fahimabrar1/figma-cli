@@ -47,7 +47,7 @@ describe('URL pattern matching', () => {
 // ----------------------------------------------------------------
 describe('file type detection', () => {
   const extractFileType = (url) => {
-    const match = url.match(/figma\.com\/(design|file)\//);
+    const match = url.match(/figma\.com\/(design|file|slides)\//);
     return match ? match[1] : 'unknown';
   };
 
@@ -57,6 +57,10 @@ describe('file type detection', () => {
 
   it('should detect file type', () => {
     assert.strictEqual(extractFileType('https://www.figma.com/file/abc/File'), 'file');
+  });
+
+  it('should detect slides type', () => {
+    assert.strictEqual(extractFileType('https://www.figma.com/slides/abc/Deck'), 'slides');
   });
 
   it('should return unknown for other URLs', () => {

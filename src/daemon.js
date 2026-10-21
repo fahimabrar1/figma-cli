@@ -365,6 +365,9 @@ async function handleRequest(req, res) {
       // FIGMA_FILE and rebinds when they diverge — otherwise commands silently
       // hit whichever file happened to be first when the daemon started.
       file: (cdpClient && cdpClient.pageTitle) || null,
+      // The pin this daemon will connect with. Lets the CLI catch a pin
+      // mismatch before the daemon has bound any file (file is still null).
+      pin: process.env.FIGMA_FILE || null,
       // Which figma-cli code this daemon runs. After an update the old daemon
       // would keep serving render-batch and eval with old code until it idles
       // out; the CLI restarts it when these do not match its own.

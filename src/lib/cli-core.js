@@ -397,14 +397,15 @@ async function daemonExec(action, data = {}, timeoutMs = 90000) {
  * Title of the file the running daemon is bound to (null when unknown).
  * Cheap: one /health call, same endpoint the health check already uses.
  */
-function daemonBoundFile() {
+function daemonBinding() {
   try {
     const token = getDaemonToken();
     const tokenHeader = token ? ` -H "X-Daemon-Token: ${token}"` : '';
     const body = execSync(`curl -s${tokenHeader} http://localhost:${DAEMON_PORT}/health`, {
       encoding: 'utf8', stdio: 'pipe', timeout: 1000,
     });
-    return JSON.parse(body).file || null;
+    const health = JSON.parse(body);
+    return { file: health.file || null, pin: health.pin || null, known: 'pin' in health };
   } catch {
     return null;
   }
@@ -419,10 +420,12 @@ function daemonBoundFile() {
 function daemonPinMismatch() {
   const want = (process.env.FIGMA_FILE || '').trim();
   if (!want) return false;
-  const bound = daemonBoundFile();
-  // Unknown binding (daemon just started, plugin mode) → don't churn.
-  if (!bound) return false;
-  return !bound.toLowerCase().includes(want.toLowerCase());
+  const binding = daemonBinding();
+  if (!binding) return false;
+  if (binding.file) return !binding.file.toLowerCase().includes(want.toLowerCase());
+  // No file bound yet: the daemon will connect with its own pin, so a
+  // different pin means it would land on the wrong file.
+  return binding.known && (binding.pin || '').toLowerCase() !== want.toLowerCase();
 }
 
 async function ensureDaemonRunning(maxWaitMs = 5000) {

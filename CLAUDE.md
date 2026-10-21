@@ -430,7 +430,8 @@ FIGMA_FILE="Primer Check" figma-cli extract DESIGN.md   # substring of the file 
 ```
 
 The CLI compares the pin against the daemon's bound file and rebinds
-automatically when they differ. Verify anytime with `figma-cli eval 'figma.root.name'`.
+automatically when they differ. Figma Slides files work the same way
+(`FIGMA_FILE="Team Deck"`). Without a pin a design file always wins over a deck. Verify anytime with `figma-cli eval 'figma.root.name'`.
 
 ---
 

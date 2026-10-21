@@ -183,7 +183,7 @@ export class FigmaClient {
     this.callbacks = new Map();
     this.pageTitle = null;
     this.pageUrl = null;
-    this.fileType = null; // 'design', 'file', or 'unknown'
+    this.fileType = null; // 'design', 'file', 'slides', or 'unknown'
     this.executionContextId = null; // For Figma v39+ sandboxed context
     // Optional: pin var:<name> resolution to a single Variable Collection.
     // Set via setCollection() or directly. Per-attribute `var:collection:name`
@@ -235,12 +235,17 @@ export class FigmaClient {
     // Use regex with trailing slash to avoid matching /files/ (feed/home pages)
     const isDesignPage = (p) =>
       p.url && /figma\.com\/(design|file)\//.test(p.url);
+    // Slides files run the same Plugin API. Only reachable through a pin
+    // (FIGMA_FILE) or when no design file is open, so an unpinned connect
+    // still lands on a design file like before.
+    const isSlidesPage = (p) =>
+      p.url && /figma\.com\/slides\//.test(p.url);
 
     let page;
     if (pageTitle) {
-      page = pages.find(p => p.title.includes(pageTitle) && isDesignPage(p));
+      page = pages.find(p => p.title.includes(pageTitle) && (isDesignPage(p) || isSlidesPage(p)));
     } else {
-      page = pages.find(isDesignPage);
+      page = pages.find(isDesignPage) || pages.find(isSlidesPage);
     }
 
     if (!page) {
@@ -251,7 +256,7 @@ export class FigmaClient {
     this.pageUrl = page.url;
 
     // Detect file type from URL
-    const typeMatch = page.url.match(/figma\.com\/(design|file)\//);
+    const typeMatch = page.url.match(/figma\.com\/(design|file|slides)\//);
     this.fileType = typeMatch ? typeMatch[1] : 'unknown';
 
     return new Promise((resolve, reject) => {
